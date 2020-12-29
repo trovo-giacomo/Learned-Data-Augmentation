@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Nov  9 13:35:35 2020
-
-@author: giaco
-"""
+# Authors:
+# Giacomo Trovò
+# Giovanni Grego
+# Nazer Hdaifeh
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from libcpab.pytorch import cpab
