@@ -14,22 +14,22 @@ import torchvision.datasets as datasets
 import random as rand
 import pickle
 
-lab=3
+lab=3 # label of the class of which generate new samples in the MNIST dataset
 dataset = datasets.MNIST(root='./data', download=True, transform=None)
 idx = (dataset.train_labels == lab)
 train_labels = dataset.train_labels[idx]
 train_data = dataset.train_data[idx]
-print(np.shape(train_data))
-print(dataset)
+#print(np.shape(train_data))
+#print(dataset)
 
-num_imgs = 10;
+num_imgs = 10; # number of images used to learn a statistical model of the transformation
 
-thetas = torch.Tensor(num_imgs*(num_imgs-1),34)
+thetas = torch.Tensor(num_imgs*(num_imgs-1),34) # vector of thetas, one element for each pair of images
 
 loss_rate = []
 xn_meno_xm = []
-lrate=0.001
-maxiter = 500
+lrate=0.001 # learning rate of the optimization step in oder to learn the transformation between the sourse image and the target one
+maxiter = 500 # number of maximum iteration used to learn the transformation between two immages
 row = 0
 for k in range(num_imgs):
     for j in range(num_imgs):
@@ -69,7 +69,7 @@ for k in range(num_imgs):
                     loss_rate.append(np.round(loss.item(), 4))
                     xn_meno_xm.append(np.linalg.norm((xn-trans_est.cpu().detach()).numpy().round(4)))
             #print(theta_est)
-            print(np.shape(theta_est))
+            #print(np.shape(theta_est))
             print("Loss", np.round(loss.item(), 4), '||xn - xm◦Ttheta||: ',
                   np.linalg.norm((xn-trans_est.cpu().detach()).numpy().round(4)))
             thetas[row] = theta_est
@@ -93,6 +93,7 @@ for k in range(num_imgs):
                 plt.savefig("results/intermediate/"+str(lab)+str(k)+str(j)+".png", transparent=True, bbox_inches="tight")
             plt.show()
  
+#Learn statistical model over the observations of thetas, by fitting with a multivariate Gaussian distribution
 matrix_thetas = thetas.detach().numpy()
 
 mu = np.mean(matrix_thetas,0)
@@ -106,27 +107,27 @@ import os
 
 os.makedirs("results/final/"+str(num_imgs)+"images, lr="+str(lrate)+", maxiter="+str(maxiter))
 
+# create new images from the a predefined source one
 
-
-theta_star =  np.random.multivariate_normal(mu,sigma,1)
-print(np.shape(theta_star))
-theta_star = torch.from_numpy(theta_star).float()
+#theta_star =  np.random.multivariate_normal(mu,sigma,1) #sample the transformation
+#print(np.shape(theta_star))
+#theta_star = torch.from_numpy(theta_star).float()
 
 for i in range(5,10):
     
-    theta_star =  np.random.multivariate_normal(mu,sigma,1)
+    theta_star =  np.random.multivariate_normal(mu,sigma,1) #sample the transformation
     print(np.shape(theta_star))
     theta_star = torch.from_numpy(theta_star).float()
     
-    source_img = train_data[num_imgs+200+i];
-    source_img = np.tile(np.expand_dims(source_img, 2), [N,1,1,1])
+    source_img = train_data[num_imgs+200+i]; # sample the source image
+    source_img = np.tile(np.expand_dims(source_img, 2), [N,1,1,1]) 
     source_img = torch.Tensor(source_img).permute(0,3,1,2)
     
     
     T_new = cpab(tess_size=[3,3], device='cpu')
-    transformed_data = T_new.transform_data(source_img, theta_star, outsize=(28, 28))
+    transformed_data = T_new.transform_data(source_img, theta_star, outsize=(28, 28)) # apply the sample transformation to the sampled image and get the new trasnformed image
     
-    
+    #plot the results
     plt.subplots(1,2, figsize=(10, 15))
     plt.subplot(1,2,1)
     plt.imshow(np.squeeze(source_img.permute(0,2,3,1).cpu().numpy()[0]), cmap="gray")
